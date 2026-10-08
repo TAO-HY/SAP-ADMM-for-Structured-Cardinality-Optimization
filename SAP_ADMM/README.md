@@ -1,74 +1,100 @@
 # SAP-ADMM: signal and image denoising
 
-This repository uses **SAP-ADMM to solve signal denoising and image denoising problems** from *A Safeguarded Accelerated Proximal ADMM Algorithm for Solving Structured Cardinality Penalized Optimization Problems*, by Wei Bian, Hongyuan Tao, and Fan Wu. The experiments compare capped, convex ℓ<sub>1</sub>, ℓ<sub>1/2</sub> and ℓ<sub>0</sub> penalty models.
+This repository uses **SAP-ADMM to solve signal denoising and image denoising problems** from *A Safeguarded Accelerated Proximal ADMM Algorithm for Solving Structured Cardinality Penalized Optimization Problems*, by Wei Bian, Hongyuan Tao, and Fan Wu. The experiments compare the ℓ<sub>1</sub>–C<sub>ℓ₁</sub>, ℓ<sub>1</sub>–ℓ<sub>1/2</sub>, ℓ<sub>1</sub>–ℓ<sub>1</sub>, ℓ<sub>2</sub>–ℓ<sub>1/2</sub> and ℓ<sub>2</sub>–ℓ<sub>0</sub> models.
 
-All solvers, metrics and plots run in Python. SDCAM and pADMM are independent implementations of the mathematical algorithms in [1,2], rather than redistributed copies of those authors' software.
+All solvers, metrics and plots run in Python; MATLAB and MATLAB Engine are not required. SDCAM and pADMM are independent implementations of the mathematical algorithms in [1,2], rather than redistributed copies of those authors' software.
 
-## Models and algorithms
+## Optimization models and corresponding solvers
 
-Let b̂ denote the noisy observation, D the first-order difference operator, n the number of signal entries or image pixels, and s the number of rows of D. Define
+The manuscript considers the structured cardinality penalized problem
 
 ```math
-\Phi_\nu(y)=\sum_{i=1}^{s}\min\{1,|y_i|/\nu\},\qquad
-R_{1/2}(y)=\sum_{i=1}^{s}\sqrt{|y_i|}.
+\min_{x\in\mathbb R^n}\ f(Ax)+\lambda_0\|Dx\|_0.
 ```
 
-The half penalty is a sum of square roots, not the square root of an ℓ<sub>1</sub> norm. The implemented models are
+SAP-ADMM is applied to its penalized capped-ℓ<sub>1</sub> relaxation
+
+```math
+\min_{x,y}\ f(Ax)+\lambda_0\Phi(y)+\lambda_p\|Dx-y\|.
+```
+
+Here f is the convex loss, y is an auxiliary variable, and λ<sub>0</sub> and λ<sub>p</sub> are positive penalty parameters. An unqualified norm denotes the Euclidean vector norm or its induced matrix norm. For ν > 0, the capped-ℓ<sub>1</sub> function and its componentwise extension are
+
+```math
+\phi(t)=\min\left\{1,\frac{|t|}{\nu}\right\},
+\qquad
+\Phi(y)=\sum_{i=1}^{s}\phi(y_i),
+```
+
+where s is the number of components of y, equal to the number of rows of D. The dependence of Φ on ν is implicit, as in the manuscript.
+
+For denoising, let b ∈ ℝ<sup>n</sup> denote the clean signal or vectorized image and b̂ its noisy observation. The SAP-ADMM models use A = I<sub>n</sub> and f(x) = ‖x − b̂‖<sub>1</sub>/n. The following five models use the formulations and model names in Table 1 of the manuscript. The abbreviation ℓ<sub>1</sub>–C<sub>ℓ₁</sub> denotes the ℓ<sub>1</sub>–capped-ℓ<sub>1</sub> model.
 
 ```math
 \begin{aligned}
-\text{Capped:}\quad&\min_{x,y}\ \frac{\|x-\hat b\|_1}{n}
-+\lambda_p\|Dx-y\|_2+\lambda_0\Phi_\nu(y),\\
-\text{Convex:}\quad&\min_{x,y}\ \frac{\|x-\hat b\|_1}{n}
-+\lambda_p\|Dx-y\|_2+\lambda_{\ell_1}\|y\|_1,\\
-\text{SDCAM, }\ell_1\text{ loss:}\quad&\min_x\ \frac{\|x-\hat b\|_1}{n}
-+\lambda_{\ell_{1/2}}R_{1/2}(Dx),\\
-\text{SDCAM, }\ell_2\text{ loss:}\quad&\min_x\ \frac12\|x-\hat b\|_2^2
-+\lambda_{\ell_{1/2}}R_{1/2}(Dx),\\
-\text{Signal pADMM:}\quad&\min_{x,y}\ \frac12\|x-\hat b\|_2^2
-+\lambda_{\ell_0}\|y\|_0,\qquad Dx=y.
+\ell_1\text{–}C_{\ell_1}:\quad
+&\min_{x,y}\ \|x-\hat b\|_1/n
++\lambda_p\|Dx-y\|+\lambda_0\Phi(y),\\[3pt]
+\ell_1\text{–}\ell_{1/2}:\quad
+&\min_x\ \|x-\hat b\|_1/n
++\lambda_{\ell_{1/2}}\|Dx\|_{1/2}^{1/2},\\[3pt]
+\ell_1\text{–}\ell_1:\quad
+&\min_{x,y}\ \|x-\hat b\|_1/n
++\lambda_p\|Dx-y\|+\lambda_{\ell_1}\|y\|_1,\\[3pt]
+\ell_2\text{–}\ell_{1/2}:\quad
+&\min_x\ \|x-\hat b\|^2/2
++\lambda_{\ell_{1/2}}\|Dx\|_{1/2}^{1/2},\\[3pt]
+\ell_2\text{–}\ell_0:\quad
+&\min_x\ \|x-\hat b\|^2/2+\lambda_{\ell_0}\|Dx\|_0.
 \end{aligned}
 ```
 
-The squared ℓ<sub>2</sub> losses are **not divided by n**. The capped and convex models use the **Euclidean mismatch norm**; pADMM imposes Dx=y.
+The half penalty is defined by
+
+```math
+\|v\|_{1/2}^{1/2}=\sum_i |v_i|^{1/2}.
+```
+
+The squared ℓ<sub>2</sub> losses are not divided by n. The mismatch term in the ℓ<sub>1</sub>–C<sub>ℓ₁</sub> and ℓ<sub>1</sub>–ℓ<sub>1</sub> models uses the Euclidean norm.
 
 | Display name | Result key | Model | Signal | MNIST | Source |
 | --- | --- | --- | --- | --- | --- |
-| SAP-ADMM | `sap_admm` | ℓ<sub>1</sub>–capped-ℓ<sub>1</sub> | Yes | Yes | Associated manuscript |
-| SAP-ADMM-<sup>H</sup> | `sap_admm_halpern` | Same capped model | Yes | — | SAP-ADMM with α=2,t=1, one restart |
-| SAP-ADMM-<sup>1</sup> | `sap_admm_l1` | ℓ<sub>1</sub>–ℓ<sub>1</sub> | Yes | Yes | Convex SAP-ADMM specialization |
+| SAP-ADMM | `sap_admm` | ℓ<sub>1</sub>–C<sub>ℓ₁</sub> | Yes | Yes | Associated manuscript |
+| SAP-ADMM-<sup>H</sup> | `sap_admm_halpern` | ℓ<sub>1</sub>–C<sub>ℓ₁</sub> | Yes | — | SAP-ADMM with α = 2, t = 1, and one restart |
 | SDCAM<sup>1</sup> | `sdcam_l1` | ℓ<sub>1</sub>–ℓ<sub>1/2</sub> | Yes | Yes | Liu, Pong and Takeda [1] |
+| SAP-ADMM-<sup>1</sup> | `sap_admm_l1` | ℓ<sub>1</sub>–ℓ<sub>1</sub> | Yes | Yes | Convex SAP-ADMM specialization |
 | SDCAM<sup>2</sup> | `sdcam_l2` | ℓ<sub>2</sub>–ℓ<sub>1/2</sub> | Yes | Yes | Liu, Pong and Takeda [1] |
 | pADMM | `padmm_l0` | ℓ<sub>2</sub>–ℓ<sub>0</sub> | Yes | — | Boţ and Nguyen [2] |
 
-Each method receives the **same noisy observation** within a trial. SAP-ADMM-<sup>H</sup> is a parameter setting of SAP-ADMM, with one restart after effective update 1000, before update 1001; the global continuation counter does not reset.
+Each method receives the same noisy observation within a trial. SAP-ADMM uses α = 15 and t = 1.5. SAP-ADMM-<sup>H</sup> is the Halpern variant with α = 2, t = 1, and a single restart after effective update 1000, before update 1001; the global continuation counter does not reset.
 
 ## Data and operators
 
-**Signals:** n=1000, D<sub>i,i</sub>=-1, D<sub>i,i+1</sub>=1 and D ∈ ℝ<sup>(n−1)×n</sup>. Segment lengths are integer draws from [50,150] and levels from [-5,10], with successive levels differing by more than 2. Gaussian standard deviation is 0.5. Independent additive impulse perturbations are uniform on [-5,5]. There are 50 trials for each π ∈ {0,0.05,0.10,0.15,0.20}.
+**Piecewise-constant signal denoising:** We recover b ∈ ℝ<sup>n</sup> from b̂ ∈ ℝ<sup>n</sup>, with n=1000, D<sub>i,i</sub>=-1, D<sub>i,i+1</sub>=1 and D ∈ ℝ<sup>(n−1)×n</sup>. Segment lengths are integer draws from [50,150] and levels from [-5,10], with successive levels differing by more than 2. Gaussian standard deviation is 0.5. Independent additive impulse perturbations are uniform on [-5,5]. There are 50 trials for each π ∈ {0,0.05,0.10,0.15,0.20}.
 
 The generator uses NumPy `RandomState`, seed `trial_index + 1 + (probability_index + 1)*100`. Illustrative recovery inputs use seed `20261001`; capped-model recovery examples use N<sub>max</sub>=2000, whereas statistical runs use N<sub>max</sub>=500.
 
-**MNIST:** ten fixed 28×28 normalized images, one per digit, with n=784 and columnwise vectorization. Each digit has 20 noisy observations. A probability-0.10 mask replaces selected pixels by uniform values on [0,1], then Gaussian noise with standard deviation 0.2 is added. Noisy observations and images evaluated for quality are clipped to [0,1].
+**MNIST total variation denoising:** Let b ∈ ℝ<sup>n</sup> be the columnwise vectorization of a clean n<sub>1</sub>×n<sub>2</sub> image, where n = n<sub>1</sub>n<sub>2</sub>, and let b̂ be its noisy observation. We use ten fixed normalized images, one per digit, with n<sub>1</sub> = n<sub>2</sub> = 28 and n = 784. Each digit has 20 noisy observations. A probability-0.10 mask replaces selected pixels by uniform values on [0,1], then Gaussian noise with standard deviation 0.2 is added. Noisy observations and images evaluated for quality are clipped to [0,1].
 
 ```math
-D=\begin{bmatrix}D_h\\D_v\end{bmatrix},\qquad
-D_h=L_{28}\otimes I_{28},\qquad D_v=I_{28}\otimes L_{28}.
+D=\begin{bmatrix}D_h^\top&D_v^\top\end{bmatrix}^{\!\top},\qquad
+D_h=L_{n_2}\otimes I_{n_1},\qquad
+D_v=I_{n_2}\otimes L_{n_1}.
 ```
 
-The first 27 rows of L<sub>28</sub> implement forward differences and its last row is zero, giving D exactly 2n rows without boundary wraparound. Noise seeds are `20260602 + 1000*(digit_index + 1) + trial_index + 1`.
+Here ⊗ denotes the Kronecker product. The matrix L<sub>nᵢ</sub> has −1 on the main diagonal and 1 on the superdiagonal in its first n<sub>i</sub>−1 rows, with all other entries zero. Thus D ∈ ℝ<sup>2n×n</sup> has 2n rows without boundary wraparound and does not have full row rank. The MNIST experiment compares SAP-ADMM, SDCAM<sup>1</sup>, SAP-ADMM-<sup>1</sup> and SDCAM<sup>2</sup>. Noise seeds are `20260602 + 1000*(digit_index + 1) + trial_index + 1`.
 
-**General matrix:** the additional capped-model experiment solves
+**General matrix A:** the additional ℓ<sub>1</sub>–C<sub>ℓ₁</sub> experiment solves
 
 ```math
-\min_{x,y}\ \|Ax-\hat b\|_1/m+\lambda_p\|Dx-y\|_2+\lambda_0\Phi_\nu(y).
+\min_{x,y}\ \|Ax-\hat b\|_1/m+\lambda_p\|Dx-y\|+\lambda_0\Phi(y).
 ```
 
-Here m=800, n=1000, and a Gaussian matrix is normalized to ‖A‖<sub>2</sub> = 1. Gaussian standard deviation is 0.2 and additive impulse probability is 0.05. Each of the 20 instances is reused for N<sub>max</sub> ∈ {200,300,400,500,600}.
+Here m=800 is the number of observations, n=1000, and A ∈ ℝ<sup>m×n</sup> is generated with independent standard Gaussian entries and normalized to ‖A‖ = 1. The clean signal b and difference matrix D are constructed as in the identity-matrix signal experiment, and b̂ is generated from Ab. Gaussian standard deviation is 0.2 and additive impulse probability is 0.05. Each of the 20 instances is reused for N<sub>max</sub> ∈ {200,300,400,500,600}.
 
 ## SAP-ADMM parameters and continuation
 
-The capped-model parameters are listed below.
+The parameters for the ℓ<sub>1</sub>–C<sub>ℓ₁</sub> model are listed below.
 
 | Parameter | Signal | General A | MNIST |
 | --- | --- | --- | --- |
@@ -130,7 +156,7 @@ The first floor output is excluded from those 50 additional updates. The indepen
 
 ## Comparison algorithm parameters
 
-### SAP-ADMM-<sup>1</sup>: convex penalty
+### SAP-ADMM-<sup>1</sup>: ℓ<sub>1</sub>–ℓ<sub>1</sub> model
 
 | Parameter | Signal | MNIST |
 | --- | --- | --- |
@@ -142,7 +168,7 @@ The first floor output is excluded from those 50 additional updates. The indepen
 | Stop criterion | Δ<sub>k</sub>&lt;2×10<sup>−4</sup> | Δ<sub>k</sub>&lt;4×10<sup>−4</sup> |
 | Maximum outputs | 20000 | 20000 |
 
-Initialization is the same as for the corresponding capped model. The y proximal output uses soft thresholding at λ<sub>ℓ₁</sub>/β. Let w=(x,y,p,q,η,μ) collect the six variable blocks. The accelerated iteration is
+Initialization is the same as for the corresponding capped model. The y proximal output uses soft thresholding at λ<sub>ℓ₁</sub>/β. Let u=(x,y) and w=(p,q,u,η,μ), following the notation of the manuscript. The accelerated iteration is
 
 ```math
 \begin{aligned}
@@ -158,7 +184,14 @@ The image stopping check uses all six variable blocks and permits at most 20000 
 
 ### pADMM: signal ℓ<sub>2</sub>–ℓ<sub>0</sub> model
 
-This implementation specializes the proximal ADMM scheme of Boţ and Nguyen [2], with
+For the ℓ<sub>2</sub>–ℓ<sub>0</sub> model above, the proximal ADMM scheme of Boţ and Nguyen [2] uses the equivalent constrained formulation
+
+```math
+\min_{x,y}\ \|x-\hat b\|^2/2+\lambda_{\ell_0}\|y\|_0,
+\qquad \text{s.t.}\quad y=Dx.
+```
+
+The parameters are
 
 ```math
 \lambda_{\ell_0}=200,\quad r=100,\quad\rho_{\mathrm{pADMM}}=1.9,
@@ -208,8 +241,8 @@ Both use SDCAM and its NPG majorization subsolver from Liu, Pong and Takeda [1],
 The Moreau smoothing parameter λ<sub>t</sub> is distinct from penalty coefficients and the capped-model ν. Write a = λ<sub>ℓ₁/₂</sub> and μ=λ<sub>t</sub> temporarily:
 
 ```math
-F_\mu(x)=\ell(x)+\min_y\left\{aR_{1/2}(y)+\frac{\|Dx-y\|_2^2}{2\mu}\right\},
-\qquad y_\mu(x)\in\mathrm{prox}_{\mu aR_{1/2}}(Dx).
+F_\mu(x)=\ell(x)+\min_y\left\{a\|y\|_{1/2}^{1/2}+\frac{\|Dx-y\|_2^2}{2\mu}\right\},
+\qquad y_\mu(x)\in\mathrm{prox}_{\mu a\|\cdot\|_{1/2}^{1/2}}(Dx).
 ```
 
 The half-penalty proximal mapping uses a global scalar minimizer per component, selecting zero at the tie &#124;v&#124; = (3/2)(μa)<sup>2/3</sup>. For inverse stepsize L, let g<sub>μ</sub>(x) = D<sup>⊤</sup>(Dx − y<sub>μ</sub>(x))/μ. Candidate updates are

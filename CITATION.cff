@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the associated manuscript."
+title: "SAP-ADMM: Reproducible research code"
+type: software
+version: 1.2.0
+date-released: 2026-10-08
+license: MIT
+authors:
+  - family-names: Bian
+    given-names: Wei
+  - family-names: Tao
+    given-names: Hongyuan
+  - family-names: Wu
+    given-names: Fan
+preferred-citation:
+  type: generic
+  title: "A Safeguarded Accelerated Proximal ADMM Algorithm for Solving Structured Cardinality Penalized Optimization Problems"
+  year: 2026
+  authors:
+    - family-names: Bian
+      given-names: Wei
+    - family-names: Tao
+      given-names: Hongyuan
+    - family-names: Wu
+      given-names: Fan

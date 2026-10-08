@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sap-admm"
+version = "1.2.0"
+description = "SAP-ADMM, SDCAM and proximal ADMM comparisons for signal and image denoising"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  {name = "Wei Bian"},
+  {name = "Hongyuan Tao"},
+  {name = "Fan Wu"},
+]
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "matplotlib>=3.7",
+  "Pillow>=9.0",
+  "threadpoolctl>=3.1",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.setuptools]
+include-package-data = false
+packages = ["sap_admm", "experiments"]
+package-dir = {sap_admm = "src/sap_admm", experiments = "experiments"}
+
+[tool.setuptools.package-data]
+experiments = ["config/*.json", "inputs/*.npz", "inputs/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

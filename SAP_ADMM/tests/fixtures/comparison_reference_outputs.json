@@ -1,0 +1,13 @@
+{
+  "reference_archive": "SIAM_Experiments_Python(2).zip",
+  "seed": 20261008,
+  "iterations": {
+    "sdcam_single_stage": 8,
+    "padmm": 40
+  },
+  "purpose": "one-stage update verification; full continuation follows the supplement and cited paper",
+  "sha256": {
+    "admm.py": "5ede725b4af31032ebf6a3d1d8550d27f78a28b4377c6ce2c93a5c18e677c48c",
+    "sdcam.py": "b42e659dc35995363ae7775f1d92b7fbddfc720f920e89ef1770a246384e1e77"
+  }
+}

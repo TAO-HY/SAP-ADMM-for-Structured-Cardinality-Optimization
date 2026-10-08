@@ -1,0 +1,21 @@
+{
+  "source": "SIAM_Experiments_Python(2).zip / SIAM_Experiments_Python/admm.py",
+  "source_sha256": "5ede725b4af31032ebf6a3d1d8550d27f78a28b4377c6ce2c93a5c18e677c48c",
+  "seed": 20261002,
+  "signal_parameters": {
+    "max_iter": 73,
+    "tol_stop": 1e-12,
+    "alpha": 15,
+    "t": 1.5,
+    "lambda2_l1": 0.02
+  },
+  "image_parameters": {
+    "max_iter": 73,
+    "stop_tol": 1e-12,
+    "acc_alpha": 15,
+    "acc_t": 1.5,
+    "lambda2_l1": 0.0007
+  },
+  "signal_updates": 73,
+  "image_updates": 74
+}

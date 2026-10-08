@@ -6,7 +6,7 @@ All solvers, metrics and plots run in Python; MATLAB and MATLAB Engine are not r
 
 ## Models and algorithms
 
-Let $\hat b$ denote the noisy observation, $D$ the first-order difference operator and $n$ the number of signal entries or image pixels. Define
+Let $\hat b$ denote the noisy observation, $D$ the first-order difference operator, $n$ the number of signal entries or image pixels, and $s$ the number of rows of $D$. Define
 
 ```math
 \Phi_\nu(y)=\sum_{i=1}^{s}\min\{1,|y_i|/\nu\},\qquad
@@ -139,7 +139,7 @@ The first floor output is excluded from those $50$ additional updates. The indep
 | Stop criterion | $\Delta_k<2\times10^{-4}$ | $\Delta_k<4\times10^{-4}$ |
 | Maximum outputs | $20000$ | $20000$ |
 
-Initialization is the same as for the corresponding capped model. The $y$ proximal output uses soft thresholding at $\lambda_{\ell_1}/\beta$. The accelerated iteration is
+Initialization is the same as for the corresponding capped model. The $y$ proximal output uses soft thresholding at $\lambda_{\ell_1}/\beta$. Let $w=(x,y,p,q,\eta,\mu)$ collect the six variable blocks. The accelerated iteration is
 
 ```math
 \begin{aligned}
@@ -166,7 +166,7 @@ Initialize $x^0=\hat b$, $y^0=0$, $z^0=0$, where $z$ is the unscaled dual variab
 
 ```math
 \begin{aligned}
-y^{k+1}&=\operatorname{hard}_{\sqrt{2\lambda_{\ell_0}/r}}(Dx^k+z^k/r),\\
+y^{k+1}&=\mathrm{hard}_{\sqrt{2\lambda_{\ell_0}/r}}(Dx^k+z^k/r),\\
 x^{k+1}&=\frac{\hat b+\beta_0x^k-D^\top[z^k+r(Dx^k-y^{k+1})]}{1+\beta_0},\\
 z^{k+1}&=z^k+\rho_{\mathrm{pADMM}}r(Dx^{k+1}-y^{k+1}).
 \end{aligned}
@@ -206,14 +206,14 @@ The Moreau smoothing parameter $\lambda_t$ is distinct from penalty coefficients
 
 ```math
 F_\mu(x)=\ell(x)+\min_y\left\{aR_{1/2}(y)+\frac{\|Dx-y\|_2^2}{2\mu}\right\},
-\qquad y_\mu(x)\in\operatorname{prox}_{\mu aR_{1/2}}(Dx).
+\qquad y_\mu(x)\in\mathrm{prox}_{\mu aR_{1/2}}(Dx).
 ```
 
 The half-penalty proximal mapping uses a global scalar minimizer per component, selecting zero at the tie $|v|=\frac32(\mu a)^{2/3}$. For inverse stepsize $L$, let $g_\mu(x)=D^\top(Dx-y_\mu(x))/\mu$. Candidate updates are
 
 ```math
 u=\begin{cases}
-\hat b+\operatorname{soft}_{1/(nL)}(x-g_\mu(x)/L-\hat b),&\ell_1\text{ loss},\\
+\hat b+\mathrm{soft}_{1/(nL)}(x-g_\mu(x)/L-\hat b),&\ell_1\text{ loss},\\
 x-[x-\hat b+g_\mu(x)]/L,&\ell_2\text{ loss}.
 \end{cases}
 ```
@@ -224,7 +224,7 @@ The inverse Barzilai–Borwein stepsize uses the gradient difference of the conv
 F_\mu(u)\le\max_{\max\{0,j-M\}\le i\le j}F_\mu(x^i)-\frac c2\|u-x^j\|_2^2.
 ```
 
-An inner solve terminates at its cap or when either
+Let $\bar L_j$ denote the inverse stepsize accepted by the line search at inner update $j$. An inner solve terminates at its cap or when either
 
 ```math
 \frac{\|x^{j+1}-x^j\|_2}{\max\{1,\|x^{j+1}\|_2\}}<\frac{\epsilon_t}{\bar L_j},
@@ -244,7 +244,7 @@ F_1=\frac{2|S\cap\widehat S|}{|S|+|\widehat S|},\qquad
 \mathrm{PSNR}=10\log_{10}\frac n{\|b-\bar x\|_2^2}.
 ```
 
-Both empty supports give $F_1=0$ by the implemented convention. The support threshold is $10^{-6}$: SAP-ADMM variants use $\bar y$, pADMM uses $y$, and SDCAM uses $Dx$. Exact recovery means $F_1=1$. Efficiency is mean $F_1$ divided by mean measured time.
+Here $b$ is the clean reference, $S$ is its jump support, and $\widehat S$ is the estimated jump support. Both empty supports give $F_1=0$ by the implemented convention. The support threshold is $10^{-6}$: SAP-ADMM variants use $\bar y$, pADMM uses $y$, and SDCAM uses $Dx$. Exact recovery means $F_1=1$. Efficiency is mean $F_1$ divided by mean measured time.
 
 Image quality is evaluated using PSNR, SSIM [3] and GMSD [4], with clipping to $[0,1]$ and replicated boundaries. SSIM uses an $11\times11$ normalized Gaussian window of standard deviation $1.5$:
 

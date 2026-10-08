@@ -2,7 +2,7 @@
 
 This repository uses **SAP-ADMM to solve signal denoising and image denoising problems** from *A Safeguarded Accelerated Proximal ADMM Algorithm for Solving Structured Cardinality Penalized Optimization Problems*, by Wei Bian, Hongyuan Tao, and Fan Wu. The experiments compare capped, convex $\ell_1$, $\ell_{1/2}$ and $\ell_0$ penalty models.
 
-All solvers, metrics and plots run in Python; MATLAB and MATLAB Engine are not required. SDCAM and pADMM are independent implementations of the mathematical algorithms in [1,2], rather than redistributed copies of those authors' software.
+All solvers, metrics and plots run in Python. SDCAM and pADMM are independent implementations of the mathematical algorithms in [1,2], rather than redistributed copies of those authors' software.
 
 ## Models and algorithms
 
